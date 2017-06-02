@@ -1,0 +1,36 @@
+body {
+  background-color: #DDD;
+  margin: 10px;
+  color: #DDD;
+}
+
+h1 {
+  color: #292b2c;
+}
+
+#channels {
+  display: block;
+  margin: 0 auto;
+  width: 50%;
+  min-width: 500px;
+}
+
+.channel {
+  margin: 20px;
+  border: 4px solid #D96F32;
+	border-radius: 25px;
+	padding: 10px;
+	background: #092B40;
+}
+
+.channel a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo {
+  margin: 5px;
+  border-radius: 25px;
+	-webkit-border-radius: 25px;
+	-moz-border-radius: 25px;
+}
