@@ -12,7 +12,24 @@ var channels = [
   "anniefuchsia"
 ];
 var renders = [];
-var count = 0;
+
+function getAccountsInfo() {
+  let promises = [];
+  let query = "https://wind-bow.glitch.me/twitch-api/streams/";
+  for (let i = 0; i < channels.length; ++i) {
+    promises.push(axios.get(query + channels[i]));
+  }
+
+  axios.all(promises).then(
+    axios.spread((...args) => {
+      for (let i = 0; i < args.length; i++) {
+        console.log(args[i]);
+        parseResponse(args[i]);
+      }
+      render();
+    })
+  );
+}
 
 function render() {
   $.each(renders, function(index, component) {
@@ -20,15 +37,11 @@ function render() {
   });
 }
 
-function getData(channel, callback) {
-  let query = "https://wind-bow.glitch.me/twitch-api/streams/" + channel;
-  $.getJSON(query, function(data) {
-    callback(channel, data);
-  });
-}
-
-function parseResponse(channel, data) {
+function parseResponse(response) {
   let connected, game, logo, status, url, html;
+
+  let data = response.data;
+  let channel = response.request.responseURL.split("/")[5];
 
   data.stream == null ? (connected = "offline") : (connected = "online");
   connected == "online"
@@ -36,8 +49,7 @@ function parseResponse(channel, data) {
     : (game = "OFFLINE");
   connected == "online"
     ? (logo = data.stream.channel.logo)
-    : (logo =
-        "./img/Twitch-Icon-150x150.png");
+    : (logo = "./img/Twitch-Icon-150x150.png");
   connected == "online" ? (status = data.stream.channel.status) : (status = "");
   connected == "online" ? (url = data.stream.channel.url) : (url = "");
 
@@ -55,11 +67,6 @@ function parseResponse(channel, data) {
     "</td></tr></table></a></div>";
 
   connected == "online" ? renders.unshift(html) : renders.push(html);
-
-  count += 1;
-  count < channels.length ? getData(channels[count], parseResponse) : render();
 }
 
-$(document).ready(function() {
-  getData(channels[0], parseResponse);
-});
+getAccountsInfo();
