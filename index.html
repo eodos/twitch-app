@@ -17,7 +17,16 @@
 <body>
   <div class="container-fluid">
     <h1 class="text-center">Twitch Monitor App</h1>
-    <div id="channels"></div>
+    <div class="row">
+      <div class="col-md-12 text-center">
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary center-block" id="showAll"><input type="radio">All</label>
+          <label class="btn btn-success center-block" id="showOnline"><input type="radio">Online</label>
+          <label class="btn btn-danger center-block" id="showOffline"><input type="radio">Offline</label>
+        </div>
+      </div>
+      <div id="channels"></div>
+    </div>
   </div>
 </body>
 

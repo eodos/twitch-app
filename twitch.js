@@ -1,4 +1,4 @@
-var channels = [
+const channels = [
   "ESL_SC2",
   "OgamingSC2",
   "cretetion",
@@ -11,47 +11,54 @@ var channels = [
   "comster404",
   "anniefuchsia"
 ];
-var renders = [];
+let renders = [];
 
-function getAccountsInfo() {
+const getAccountsInfo = () => {
   let promises = [];
-  let query = "https://wind-bow.glitch.me/twitch-api/streams/";
-  for (let i = 0; i < channels.length; ++i) {
-    promises.push(axios.get(query + channels[i]));
-  }
+  const query = "https://wind-bow.glitch.me/twitch-api/streams/";
+  $.each(channels, (index, channel) => {
+    promises.push(axios.get(query + channel));
+  });
 
   axios.all(promises).then(
     axios.spread((...args) => {
-      for (let i = 0; i < args.length; i++) {
-        console.log(args[i]);
-        parseResponse(args[i]);
-      }
+      $.each(args, (index, arg) => {
+        console.log(arg);
+        parseResponse(arg);
+      });
       render();
     })
   );
 }
 
-function render() {
-  $.each(renders, function(index, component) {
-    $("#channels").append(component);
+const render = (online = true, offline = true) => {
+  console.log("Rendering..." + online + offline);
+  let div = $("#channels")[0];
+  while (div.lastChild) {
+    div.removeChild(div.lastChild);
+  }
+
+  $.each(renders, (index, component) => {
+    if (online & component.online) $("#channels").append(component.html);
+    else if (offline & !component.online) $("#channels").append(component.html);
   });
 }
 
-function parseResponse(response) {
+const parseResponse = (response) => {
   let connected, game, logo, status, url, html;
 
-  let data = response.data;
-  let channel = response.request.responseURL.split("/")[5];
+  const data = response.data;
+  const channel = response.request.responseURL.split("/")[5];
 
-  data.stream == null ? (connected = "offline") : (connected = "online");
-  connected == "online"
+  data.stream == null ? (connected = false) : (connected = true);
+  connected
     ? (game = "Playing ... " + data.stream.channel.game)
     : (game = "OFFLINE");
-  connected == "online"
+  connected
     ? (logo = data.stream.channel.logo)
     : (logo = "./img/Twitch-Icon-150x150.png");
-  connected == "online" ? (status = data.stream.channel.status) : (status = "");
-  connected == "online" ? (url = data.stream.channel.url) : (url = "");
+  connected ? (status = data.stream.channel.status) : (status = "");
+  connected ? (url = data.stream.channel.url) : (url = "");
 
   html =
     "<div class='channel'><a target='_blank' href='" +
@@ -66,7 +73,15 @@ function parseResponse(response) {
     status +
     "</td></tr></table></a></div>";
 
-  connected == "online" ? renders.unshift(html) : renders.push(html);
+  const output = {
+    online: connected,
+    html: html
+  };
+
+  connected ? renders.unshift(output) : renders.push(output);
 }
 
 getAccountsInfo();
+$("#showAll").click(() => {render(true, true);});
+$("#showOnline").click(() => {render(true, false);});
+$("#showOffline").click(() => {render(false, true);});
