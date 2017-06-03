@@ -29,10 +29,9 @@ const getAccountsInfo = () => {
       render();
     })
   );
-}
+};
 
 const render = (online = true, offline = true) => {
-  console.log("Rendering..." + online + offline);
   let div = $("#channels")[0];
   while (div.lastChild) {
     div.removeChild(div.lastChild);
@@ -42,9 +41,9 @@ const render = (online = true, offline = true) => {
     if (online & component.online) $("#channels").append(component.html);
     else if (offline & !component.online) $("#channels").append(component.html);
   });
-}
+};
 
-const parseResponse = (response) => {
+const parseResponse = response => {
   let connected, game, logo, status, url, html;
 
   const data = response.data;
@@ -61,7 +60,9 @@ const parseResponse = (response) => {
   connected ? (url = data.stream.channel.url) : (url = "");
 
   html =
-    "<div class='channel'><a target='_blank' href='" +
+    "<div class='channel' id='channel_" +
+    channel +
+    "'><a target='_blank' href='" +
     url +
     "'><table style='width:100%'><tr><td style='width:120px'><img height=100 class='logo' src='" +
     logo +
@@ -71,17 +72,36 @@ const parseResponse = (response) => {
     game +
     "<br/>" +
     status +
-    "</td></tr></table></a></div>";
+    "</td></tr></table></a><a class='close' style='margin: -67px -50px 0px 0px; color: black' onclick='deleteChannel(\"" +
+    channel +
+    "\")'>&times;</a></div>";
 
   const output = {
     online: connected,
+    name: channel,
     html: html
   };
 
   connected ? renders.unshift(output) : renders.push(output);
-}
+};
+
+const deleteChannel = channel => {
+  $.each(renders, (index, component) => {
+    if (component.name == channel) {
+      renders.splice(index, 1);
+      $("#channel_" + channel).remove();
+      return false;
+    }
+  });
+};
 
 getAccountsInfo();
-$("#showAll").click(() => {render(true, true);});
-$("#showOnline").click(() => {render(true, false);});
-$("#showOffline").click(() => {render(false, true);});
+$("#showAll").click(() => {
+  render(true, true);
+});
+$("#showOnline").click(() => {
+  render(true, false);
+});
+$("#showOffline").click(() => {
+  render(false, true);
+});
