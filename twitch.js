@@ -15,6 +15,7 @@ let renders = [];
 
 const getAccountsInfo = channels => {
   let accountPromises = [];
+  let accountInfo = [];
   let streamPromises = [];
   const accountQuery = "https://wind-bow.glitch.me/twitch-api/users/";
   const streamQuery = "https://wind-bow.glitch.me/twitch-api/streams/";
@@ -23,36 +24,37 @@ const getAccountsInfo = channels => {
     accountPromises.push(axios.get(accountQuery + channel));
   });
 
-  axios.all(accountPromises)
-  .then(
-    axios.spread((...args) => {
-      $.each(args, (index, arg) => {
-        if (arg.data.error) {
-          $("#alertMessage")[0].innerHTML =
-            `<div class="alert alert-danger alert-dismissible in" role="alert">
+  axios
+    .all(accountPromises)
+    .then(
+      axios.spread((...args) => {
+        $.each(args, (index, arg) => {
+          if (arg.data.error) {
+            $(
+              "#alertMessage"
+            )[0].innerHTML = `<div class="alert alert-danger alert-dismissible in" role="alert">
               <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
               ${arg.data.message}
             </div>`;
-        }
-        else {
-          streamPromises.push(axios.get(streamQuery + arg.data.display_name));
-        }
-      });
-    })
-  )
-  .then(
-    () => {
-      axios.all(streamPromises)
-      .then(axios.spread((...args) => {
-        $.each(args, (index, arg) => {
-          parseResponse(arg);
+          } else {
+            accountInfo.push(arg.data);
+            streamPromises.push(axios.get(streamQuery + arg.data.display_name));
+          }
         });
-        render();
-      }))
-    }
-  );
+      })
+    )
+    .then(() => {
+      axios.all(streamPromises).then(
+        axios.spread((...args) => {
+          $.each(args, (index, streamInfo) => {
+            parseResponse(accountInfo[index], streamInfo);
+          });
+          render();
+        })
+      );
+    });
 };
 
 const render = (online = true, offline = true) => {
@@ -67,38 +69,36 @@ const render = (online = true, offline = true) => {
   });
 };
 
-const parseResponse = response => {
+const parseResponse = (accountInfo, streamInfo) => {
   let connected, game, logo, status, url, html;
-
-  const data = response.data;
-  const channel = response.request.responseURL.split("/")[5];
+  const data = streamInfo.data;
+  const channel = accountInfo.display_name;
 
   data.stream == null ? (connected = false) : (connected = true);
   connected
     ? (game = `Playing ... ${data.stream.channel.game}`)
     : (game = "OFFLINE");
-  connected
-    ? (logo = data.stream.channel.logo)
+  accountInfo.logo
+    ? (logo = accountInfo.logo)
     : (logo = "./img/Twitch-Icon-150x150.png");
   connected ? (status = data.stream.channel.status) : (status = "");
-  connected ? (url = data.stream.channel.url) : (url = "");
+  connected
+    ? (url = data.stream.channel.url)
+    : (url = `https://www.twitch.tv/${channel}`);
 
-  html =
-    `<div class='channel' id='channel_${channel}'>
+  html = `<div class='channel' id='channel_${channel}'>
       <a target='_blank' href='${url}'>
-        <table style='width:100%'>
-          <tr>
-            <td style='width:100px'>
-              <img height=80 class='logo' src='${logo}'/>
-            </td>
-            <td>
-              <h4>${channel}</h4>
-              ${game}
-              <br/>
-              ${status}
-            </td>
-          </tr>
-        </table>
+        <div class="media">
+          <div class="media-left media-middle">
+            <img class="media-object logo" height=80 src="${logo}" alt="...">
+          </div>
+          <div class="media-body">
+          <h4 class="media-heading">${channel}</h4>
+          ${game}
+          <br/>
+          ${status}
+          </div>
+        </div>
       </a>
       <a class='close' style='margin: -67px -50px 0px 0px; color: black'
         onclick='deleteChannel("${channel}")'>&times;
@@ -134,9 +134,9 @@ $("#showOnline").click(() => {
 $("#showOffline").click(() => {
   render(false, true);
 });
-$("#addChannel").on('keyup', (e) => {
-    if (e.keyCode == 13) {
-      getAccountsInfo([$("#addChannel")[0].value]);
-      $("#addChannel")[0].value = "";
-    }
+$("#addChannel").on("keyup", e => {
+  if (e.keyCode == 13) {
+    getAccountsInfo([$("#addChannel")[0].value]);
+    $("#addChannel")[0].value = "";
+  }
 });
