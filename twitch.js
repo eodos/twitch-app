@@ -80,13 +80,13 @@ const parseResponse = (accountInfo, streamInfo) => {
     : (game = "OFFLINE");
   accountInfo.logo
     ? (logo = accountInfo.logo)
-    : (logo = "./img/Twitch-Icon-150x150.png");
+    : (logo = "./img/twitch.png");
   connected ? (status = data.stream.channel.status) : (status = "");
   connected
     ? (url = data.stream.channel.url)
     : (url = `https://www.twitch.tv/${channel}`);
 
-  html = `<div class='channel' id='channel_${channel}'>
+  html = `<div class='channel connected_${connected}' id='channel_${channel}'>
       <a target='_blank' href='${url}'>
         <div class="media">
           <div class="media-left media-middle">
