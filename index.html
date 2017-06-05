@@ -5,6 +5,7 @@
   <link rel="stylesheet" type="text/css" href="style.css">
 
   <script type="text/javascript" src="vendor/jquery.min.js"></script>
+  <script type="text/javascript" src="vendor/bootstrap.min.js"></script>
   <script type="text/javascript" src="vendor/axios.min.js"></script>
   <script type="text/javascript" src="twitch.js" defer></script>
 
@@ -32,7 +33,15 @@
         <input type="text" class="form-control center-block" id="addChannel">
       </div>
     </div>
-    <div id="channels"></div>
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div class="col-md-6">
+        <div id="alertMessage"></div>
+      </div>
+    </div>
+    <div id="channels">
+      Loading ...
+    </div>
   </div>
 </body>
 

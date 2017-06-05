@@ -14,20 +14,44 @@ const channels = [
 let renders = [];
 
 const getAccountsInfo = channels => {
-  let promises = [];
-  const query = "https://wind-bow.glitch.me/twitch-api/streams/";
+  let accountPromises = [];
+  let streamPromises = [];
+  const accountQuery = "https://wind-bow.glitch.me/twitch-api/users/";
+  const streamQuery = "https://wind-bow.glitch.me/twitch-api/streams/";
+
   $.each(channels, (index, channel) => {
-    promises.push(axios.get(query + channel));
+    accountPromises.push(axios.get(accountQuery + channel));
   });
 
-  axios.all(promises).then(
+  axios.all(accountPromises)
+  .then(
     axios.spread((...args) => {
       $.each(args, (index, arg) => {
-        console.log(arg);
-        parseResponse(arg);
+        if (arg.data.error) {
+          $("#alertMessage")[0].innerHTML =
+            `<div class="alert alert-danger alert-dismissible in" role="alert">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+              ${arg.data.message}
+            </div>`;
+        }
+        else {
+          streamPromises.push(axios.get(streamQuery + arg.data.display_name));
+        }
       });
-      render();
     })
+  )
+  .then(
+    () => {
+      axios.all(streamPromises)
+      .then(axios.spread((...args) => {
+        $.each(args, (index, arg) => {
+          parseResponse(arg);
+        });
+        render();
+      }))
+    }
   );
 };
 
@@ -64,8 +88,8 @@ const parseResponse = response => {
       <a target='_blank' href='${url}'>
         <table style='width:100%'>
           <tr>
-            <td style='width:120px'>
-              <img height=100 class='logo' src='${logo}'/>
+            <td style='width:100px'>
+              <img height=80 class='logo' src='${logo}'/>
             </td>
             <td>
               <h4>${channel}</h4>
